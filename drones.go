@@ -47,11 +47,12 @@ func (p1 GPSCoord) equal(p2 GPSCoord) bool {
 // min/max NumOfDrops = drone get allocated a random number of delivery points between min, max
 // northWest/southEast Boundary will determine the area drones will fly in.
 // speed = the distance per event loop that a drone covers, 0.0003 seems to equal about 10 meters in real word dist
-func InitDroneController(numOfDrones, minNumOfDrops, maxNumOfDrops int, northWestBoundary, southEastBoundary GPSCoord, speed float64) *DroneController {
+func InitDroneController(numOfDrones, minNumOfDrops, maxNumOfDrops int, northWestBoundary, southEastBoundary GPSCoord, speed float64, prefix string) *DroneController {
 	dc := &DroneController{NWBoundary: northWestBoundary, SEBoundary: southEastBoundary}
 	dc.droneMinDrops = minNumOfDrops
 	dc.droneMaxDrops = maxNumOfDrops
 	dc.droneSpeed = speed
+	dc.ControllerPrefix = prefix
 	dc.Drones = make([]*Drone, numOfDrones)
 
 	// set airport at the mid point of the boundary
@@ -60,6 +61,7 @@ func InitDroneController(numOfDrones, minNumOfDrops, maxNumOfDrops int, northWes
 	// init drones
 	for i := 0; i < numOfDrones; i++ {
 		d := initDroneRandom(dc.Airport, northWestBoundary, southEastBoundary, minNumOfDrops, maxNumOfDrops, speed)
+		d.Name = fmt.Sprintf("%s-%v", prefix, i)
 		dc.Drones[i] = d
 	}
 

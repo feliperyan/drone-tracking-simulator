@@ -2,7 +2,7 @@ package main
 
 import (
 	"testing"
-	"fmt"
+	// "fmt"
 	"math"
 )
 
@@ -107,7 +107,7 @@ func TestInitDroneControllerHowManyDrones(t *testing.T) {
 	nw := GPSCoord{10.0, 20.0}
 	se := GPSCoord{5.0, -12.0}
 
-	dc := InitDroneController(5, 5, 10, nw, se, 1.0)
+	dc := InitDroneController(5, 5, 10, nw, se, 1.0, "Airport-A")
 
 	if len(dc.Drones) != 5 {
 		t.Error("Too many or too few Drones: ", len(dc.Drones))
@@ -132,9 +132,9 @@ func TestInitRandomDroneBackToOrigin(t *testing.T) {
 func TestTick(t *testing.T) {
 	nw := GPSCoord{10.0, 4.0}
 	se := GPSCoord{7.0, 13.0}
-	dc := InitDroneController(1, 1, 1, nw, se, 1.0)
+	dc := InitDroneController(1, 1, 1, nw, se, 1.0, "airport-A")
 
-	fmt.Printf("Airport: %v | borders: %v %v \n", dc.Airport, dc.NWBoundary, dc.SEBoundary)
+	// fmt.Printf("Airport: %v | borders: %v %v \n", dc.Airport, dc.NWBoundary, dc.SEBoundary)
 	//fmt.Println("Drone: ", dc.Drones[0])
 
 	dist := distanceBetweenCoords(dc.Drones[0].CurrentPosition, dc.Drones[0].Destinations[0])
