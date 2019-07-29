@@ -35,6 +35,19 @@ type DroneController struct {
 	droneSpeed       float64
 }
 
+func (d *Drone) getStringJSON() string {
+	s := fmt.Sprintf("{drone: %v, lat: %v, lon: %v, dest:{lat:%v, lon:%v, num: %v}}",
+		d.Name,
+		d.CurrentPosition.Lat,
+		d.CurrentPosition.Lon,
+		d.Destinations[d.NextDestination].Lat,
+		d.Destinations[d.NextDestination].Lon,
+		d.NextDestination,
+	)
+
+	return s
+}
+
 func (p1 GPSCoord) equal(p2 GPSCoord) bool {
 	if p1.Lat == p2.Lat && p1.Lon == p2.Lon {
 		return true

@@ -4,6 +4,7 @@ import (
 	"testing"
 	// "fmt"
 	"math"
+	"strings"
 )
 
 func getDrone() *Drone {
@@ -152,5 +153,14 @@ func TestTick(t *testing.T) {
 
 	if !dc.Drones[0].CurrentPosition.equal(dc.Airport) {
 		t.Error("Hasn't returned to destination: ", dc.Drones[0].CurrentPosition)
+	}
+}
+
+func TestJSONRepresentation(t *testing.T) {
+	d := getDrone()
+	s := d.getStringJSON()
+
+	if strings.Compare(s, "{drone: drone-1, lat: 3, lon: 3, dest:{lat:9, lon:5, num: 0}}") != 0 {
+		t.Error("Not what we expected, got: ", s)
 	}
 }
