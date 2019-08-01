@@ -36,6 +36,9 @@ type DroneController struct {
 }
 
 func (d *Drone) getStringJSON() string {
+
+	//	fmt.Println(d)
+
 	s := fmt.Sprintf("{drone: %v, lat: %v, lon: %v, dest:{lat:%v, lon:%v, num: %v}}",
 		d.Name,
 		d.CurrentPosition.Lat,
@@ -187,12 +190,13 @@ func (d *Drone) UpdatePositionTowardsDestination() {
 // TickUpdate updates all drones that belong to the dc DroneController
 func (dc *DroneController) TickUpdate() {
 	for ite, dr := range dc.Drones {
+		dc.Drones[ite].UpdatePositionTowardsDestination()
 
-		// first test if we have reached all our destinations
+		// test if we have reached all our destinations
 		if dr.CurrentPosition.equal(dc.Airport) && dr.NextDestination > 0 {
+			fmt.Println("refreshing drone: ", dr.Name)
 			dc.Drones[ite] = initDroneRandom(dc.Airport, dc.NWBoundary, dc.SEBoundary, dc.droneMinDrops, dc.droneMaxDrops, dc.droneSpeed)
 		}
 
-		dr.UpdatePositionTowardsDestination()
 	}
 }

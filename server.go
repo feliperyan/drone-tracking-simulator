@@ -1,11 +1,5 @@
 package main
 
-// Init command local:
-// ./drone-tracking-simulator --broker "localhost:9092" --topic "test" --routines 3
-
-// Heroku
-// ./drone-tracking-simulator --broker "ec2-63-33-222-49.eu-west-1.compute.amazonaws.com:9096,ec2-34-252-251-111.eu-west-1.compute.amazonaws.com:9096,ec2-34-255-143-98.eu-west-1.compute.amazonaws.com:9096,ec2-63-33-184-243.eu-west-1.compute.amazonaws.com:9096,ec2-63-32-227-197.eu-west-1.compute.amazonaws.com:9096,ec2-63-33-144-103.eu-west-1.compute.amazonaws.com:9096,ec2-63-33-177-161.eu-west-1.compute.amazonaws.com:9096,ec2-63-33-228-169.eu-west-1.compute.amazonaws.com:9096" --topic "sanjuan-52063.drone-coordinates" --routines 3 --tls "true"
-
 import (
 	"context"
 	"crypto/tls"
@@ -36,7 +30,7 @@ var (
 func initVariables() {
 	theBroker = getOSEnvOrReplacement("KAFKA_URL", "localhost:9092")
 	theTopic = getOSEnvOrReplacement("FRYAN_TOPIC", "drone-coordinates")
-	gophers, _ = strconv.Atoi(getOSEnvOrReplacement("FRYAN_GOPHERS", "3"))
+	gophers, _ = strconv.Atoi(getOSEnvOrReplacement("FRYAN_GOPHERS", "1"))
 	_, usingTLS = os.LookupEnv("KAFKA_CLIENT_CERT")
 	certPEM = getOSEnvOrReplacement("KAFKA_CLIENT_CERT", "")
 	keyPEM = getOSEnvOrReplacement("KAFKA_CLIENT_CERT_KEY", "")
@@ -59,6 +53,7 @@ func initialiseKafkaProducer(needsTLS bool) *kafka.Writer {
 			Brokers:  allBrokers,
 			Topic:    theTopic,
 			Balancer: &kafka.LeastBytes{},
+			Async:    true,
 		})
 		return w
 	}
@@ -102,7 +97,7 @@ func getTLSConfig() *tls.Config {
 }
 
 func runAirport(imDone chan bool, stopMe chan bool, myName string, firehose *kafka.Writer) {
-	air := InitDroneController(5, 5, 10, GPSCoord{10, 2}, GPSCoord{3, 15}, 0.3, myName)
+	air := InitDroneController(1, 1, 1, GPSCoord{10, 2}, GPSCoord{3, 15}, 0.3, myName)
 	ctx := context.Background()
 
 	for {
@@ -111,16 +106,17 @@ func runAirport(imDone chan bool, stopMe chan bool, myName string, firehose *kaf
 			imDone <- true
 			return
 		default:
-			air.TickUpdate()
-			for _, d := range air.Drones {
+			for i := range air.Drones {
+				air.TickUpdate()
 				msg := kafka.Message{
 					Key:   []byte(fmt.Sprintf("Airport-%s", myName)),
-					Value: []byte(fmt.Sprintf("%s", d.getStringJSON())),
+					Value: []byte(fmt.Sprintf("%s", air.Drones[i].getStringJSON())),
 				}
 				err := firehose.WriteMessages(ctx, msg)
 				if err != nil {
 					fmt.Println(err)
 				}
+				fmt.Println(air.Drones[i].getStringJSON())
 			}
 		}
 	}
@@ -136,6 +132,7 @@ func getOSEnvOrReplacement(envVarName, valueIfNotFound string) string {
 
 func main() {
 	initVariables()
+
 	fmt.Printf("Initialising producer. Broker: %s | topic: %s | routines: %d\n", theBroker, theTopic, gophers)
 
 	sigs := make(chan os.Signal, 1)

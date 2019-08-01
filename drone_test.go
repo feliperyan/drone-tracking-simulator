@@ -1,10 +1,10 @@
-package main 
+package main
 
 import (
-	"testing"
-	// "fmt"
+	"fmt"
 	"math"
 	"strings"
+	"testing"
 )
 
 func getDrone() *Drone {
@@ -50,9 +50,10 @@ func TestPrint(t *testing.T) {
 
 	if d.Name != "d-1" {
 		t.Error("Got wrong name", d.Name)
-	}	
-	
+	}
+
 }
+
 //TestLocationOnAxis whether my Trigonometry is accurate
 func TestLocationOnAxis(t *testing.T) {
 	d := getDrone()
@@ -90,15 +91,15 @@ func TestBackwardsArriveAtDestination(t *testing.T) {
 	if d.CurrentPosition.Lat != 3 || d.CurrentPosition.Lon != 3 {
 		t.Error("Values different from expectation: ", d.CurrentPosition)
 	}
-} 
+}
 
 func TestArriveTravelFar(t *testing.T) {
 	d := getFarTravellingDrone()
 	for i := 0; i < 58; i++ {
 		d.UpdatePositionTowardsDestination()
-		// fmt.Println("Current Pos: ", d.CurrentPosition)	
+		// fmt.Println("Current Pos: ", d.CurrentPosition)
 	}
-	
+
 	if d.CurrentPosition.Lat != 220 || d.CurrentPosition.Lon != 190 {
 		t.Error("Values different from expectation: ", d.CurrentPosition)
 	}
@@ -119,12 +120,12 @@ func TestInitRandomDroneBackToOrigin(t *testing.T) {
 	nw := GPSCoord{10.0, 20.0}
 	se := GPSCoord{2.0, -12.0}
 	airport := GPSCoord{5.0, 3.0}
-	
+
 	d := initDroneRandom(airport, nw, se, 5, 10, 1)
 
-	lastDest := len(d.Destinations)-1
+	lastDest := len(d.Destinations) - 1
 
-	if !airport.equal( d.Destinations[lastDest]) {
+	if !airport.equal(d.Destinations[lastDest]) {
 		t.Error("Last destination isn't origin. It is: ", d.Destinations[len(d.Destinations)-1])
 	}
 
@@ -136,19 +137,19 @@ func TestTick(t *testing.T) {
 	dc := InitDroneController(1, 1, 1, nw, se, 1.0, "airport-A")
 
 	// fmt.Printf("Airport: %v | borders: %v %v \n", dc.Airport, dc.NWBoundary, dc.SEBoundary)
-	//fmt.Println("Drone: ", dc.Drones[0])
+	// fmt.Println("Drone: ", dc.Drones[0])
 
 	dist := distanceBetweenCoords(dc.Drones[0].CurrentPosition, dc.Drones[0].Destinations[0])
 	//fmt.Println("Distance: ", dist)
 
 	// fmt.Println("Travelling")
-	distFloor := int(math.Floor(dist))	
+	distFloor := int(math.Floor(dist))
 	distFloor = (distFloor * 2) + 1 // get back to origin
 
-	for i:=0; i <= distFloor; i++ {
+	for i := 0; i <= distFloor; i++ {
 		dc.TickUpdate()
-		// fmt.Println("tick")
-		// fmt.Println("Drone: ", dc.Drones[0].CurrentPosition)
+		fmt.Println(dc.Drones[0].getStringJSON())
+		fmt.Println("tick")
 	}
 
 	if !dc.Drones[0].CurrentPosition.equal(dc.Airport) {
