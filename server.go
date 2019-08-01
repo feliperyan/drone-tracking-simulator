@@ -17,14 +17,15 @@ import (
 
 // Global variables:
 var (
-	theBroker  string
-	allBrokers []string
-	theTopic   string
-	gophers    int
-	usingTLS   bool
-	certPEM    string
-	keyPEM     string
-	caPEM      string
+	theBroker        string
+	allBrokers       []string
+	theTopic         string
+	gophers          int
+	usingTLS         bool
+	certPEM          string
+	keyPEM           string
+	caPEM            string
+	eventLoopSeconds int
 )
 
 func initVariables() {
@@ -41,6 +42,8 @@ func initVariables() {
 
 	topicPrefix := getOSEnvOrReplacement("KAFKA_PREFIX", "")
 	theTopic = fmt.Sprintf("%s%s", topicPrefix, theTopic)
+
+	eventLoopSeconds, _ = strconv.Atoi(getOSEnvOrReplacement("FRYAN_EVENT_LOOP_SECS", "1"))
 
 }
 
@@ -97,7 +100,7 @@ func getTLSConfig() *tls.Config {
 }
 
 func runAirport(imDone chan bool, stopMe chan bool, myName string, firehose *kafka.Writer) {
-	air := InitDroneController(1, 1, 1, GPSCoord{10, 2}, GPSCoord{3, 15}, 0.3, myName)
+	air := InitDroneController(5, 5, 10, GPSCoord{10, 2}, GPSCoord{3, 15}, 0.3, myName)
 	ctx := context.Background()
 
 	for {
@@ -119,6 +122,8 @@ func runAirport(imDone chan bool, stopMe chan bool, myName string, firehose *kaf
 				fmt.Println(air.Drones[i].getStringJSON())
 			}
 		}
+		fmt.Println("Tick")
+		time.Sleep(1 * time.Second)
 	}
 }
 

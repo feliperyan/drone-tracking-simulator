@@ -192,10 +192,12 @@ func (dc *DroneController) TickUpdate() {
 	for ite, dr := range dc.Drones {
 		dc.Drones[ite].UpdatePositionTowardsDestination()
 
-		// test if we have reached all our destinations
+		// test if drone has reached all its destinations
+		// if so set up a new set of destinations and launch it
 		if dr.CurrentPosition.equal(dc.Airport) && dr.NextDestination > 0 {
 			fmt.Println("refreshing drone: ", dr.Name)
 			dc.Drones[ite] = initDroneRandom(dc.Airport, dc.NWBoundary, dc.SEBoundary, dc.droneMinDrops, dc.droneMaxDrops, dc.droneSpeed)
+			dc.Drones[ite].Name = dr.Name
 		}
 
 	}
