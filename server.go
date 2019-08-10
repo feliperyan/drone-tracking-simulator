@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
@@ -20,18 +21,23 @@ var (
 	theBroker        string
 	allBrokers       []string
 	theTopic         string
-	gophers          int
 	usingTLS         bool
 	certPEM          string
 	keyPEM           string
 	caPEM            string
 	eventLoopSeconds int
+	airportList      []AirportConfig
 )
+
+// AirportConfig holds simple config to include airports for drones
+type AirportConfig struct {
+	Name string
+	NE   GPSCoord
+	SW   GPSCoord
+}
 
 func initVariables() {
 	theBroker = getOSEnvOrReplacement("KAFKA_URL", "localhost:9092")
-	theTopic = getOSEnvOrReplacement("FRYAN_TOPIC", "drone-coordinates")
-	gophers, _ = strconv.Atoi(getOSEnvOrReplacement("FRYAN_GOPHERS", "1"))
 	_, usingTLS = os.LookupEnv("KAFKA_CLIENT_CERT")
 	certPEM = getOSEnvOrReplacement("KAFKA_CLIENT_CERT", "")
 	keyPEM = getOSEnvOrReplacement("KAFKA_CLIENT_CERT_KEY", "")
@@ -43,12 +49,13 @@ func initVariables() {
 	topicPrefix := getOSEnvOrReplacement("KAFKA_PREFIX", "")
 	theTopic = fmt.Sprintf("%s%s", topicPrefix, theTopic)
 
+	theTopic = getOSEnvOrReplacement("FRYAN_TOPIC", "drone-coordinates")
 	eventLoopSeconds, _ = strconv.Atoi(getOSEnvOrReplacement("FRYAN_EVENT_LOOP_SECS", "1"))
 
+	airporStringtList := getOSEnvOrReplacement("FRYAN_AIRPORTS", `[{"name":"air1", {"lat":-33.8073, "lon":151.1606},  {"lat":-33.8972, "lon":151.2738}}]`)
+	json.Unmarshal([]byte(airporStringtList), &airportList)
 }
 
-// depends on flag.Parse() or will use default values.
-// TODO: add tls https://github.com/segmentio/kafka-go#tls-support
 func initialiseKafkaProducer(needsTLS bool) *kafka.Writer {
 
 	if !needsTLS {
@@ -99,8 +106,8 @@ func getTLSConfig() *tls.Config {
 	}
 }
 
-func runAirport(imDone chan bool, stopMe chan bool, myName string, firehose *kafka.Writer) {
-	air := InitDroneController(5, 5, 10, GPSCoord{10, 2}, GPSCoord{3, 15}, 0.3, myName)
+func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig, firehose *kafka.Writer) {
+	air := InitDroneController(1, 2, 2, airConf.NE, airConf.SW, 0.003, airConf.Name)
 	ctx := context.Background()
 
 	for {
@@ -112,7 +119,7 @@ func runAirport(imDone chan bool, stopMe chan bool, myName string, firehose *kaf
 			for i := range air.Drones {
 				air.TickUpdate()
 				msg := kafka.Message{
-					Key:   []byte(fmt.Sprintf("Airport-%s", myName)),
+					Key:   []byte(fmt.Sprintf("Airport-%s", airConf.Name)),
 					Value: []byte(fmt.Sprintf("%s", air.Drones[i].getStringJSON())),
 				}
 				err := firehose.WriteMessages(ctx, msg)
@@ -138,7 +145,7 @@ func getOSEnvOrReplacement(envVarName, valueIfNotFound string) string {
 func main() {
 	initVariables()
 
-	fmt.Printf("Initialising producer. Broker: %s | topic: %s | routines: %d\n", theBroker, theTopic, gophers)
+	fmt.Printf("Initialising producer. Broker: %s | topic: %s | airports: %v\n", theBroker, theTopic, airportList)
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -148,20 +155,19 @@ func main() {
 
 	w := initialiseKafkaProducer(usingTLS)
 
-	for i := 0; i < gophers; i++ {
-		name := fmt.Sprintf("airport-%v", i)
-		go runAirport(allDone, stopGopher, name, w)
+	for _, air := range airportList {
+		go runAirport(allDone, stopGopher, air, w)
 	}
 
 	finito := <-sigs
 	fmt.Println("\nReceived signal: ", finito)
 	fmt.Println("Exiting Routines.")
-	for n := 0; n < gophers; n++ {
+	for n := 0; n < len(airportList); n++ {
 		stopGopher <- true
 	}
 
 	// await finish
-	for n := 0; n < gophers; n++ {
+	for n := 0; n < len(airportList); n++ {
 		<-allDone
 	}
 
