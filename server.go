@@ -29,6 +29,15 @@ var (
 	airportList      []AirportConfig
 )
 
+const airportConfigJSONString = `[{
+	"name":"air1", 
+	"NE":{"lat":-33.8073, "lon":151.1606},  
+	"SW":{"lat":-33.8972, "lon":151.2738},
+	"drones": 10,
+	"minDel": 10,
+	"maxDel":10
+}]`
+
 // AirportConfig holds simple config to include airports for drones
 type AirportConfig struct {
 	Name   string
@@ -55,7 +64,7 @@ func initVariables() {
 
 	eventLoopSeconds, _ = strconv.Atoi(getOSEnvOrReplacement("FRYAN_EVENT_LOOP_SECS", "1"))
 
-	airporStringtList := getOSEnvOrReplacement("FRYAN_AIRPORTS", `[{"name":"air1", "NE":{"lat":-33.8073, "lon":151.1606},  "SW":{"lat":-33.8972, "lon":151.2738}}]`)
+	airporStringtList := getOSEnvOrReplacement("FRYAN_AIRPORTS", airportConfigJSONString)
 	airportList = getAirportConfigFromJSONString(airporStringtList)
 }
 

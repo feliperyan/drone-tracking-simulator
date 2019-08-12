@@ -145,13 +145,11 @@ func linearInterpolation(pointA, pointB GPSCoord, ratio float64) GPSCoord {
 	a := GPSCoord{pointA.Lat * (1 - ratio), pointA.Lon * (1 - ratio)}
 	b := GPSCoord{pointB.Lat * ratio, pointB.Lon * ratio}
 
-	fmt.Println(a)
-	fmt.Println(b)
-
 	return GPSCoord{a.Lat + b.Lat, a.Lon + b.Lon}
 }
 
-// speed is the number of units to move
+// speed is the number of units to move.
+// TODO: Replace usage of Trigo with LinearInterpolation as it's 20x faster.
 func trigo(a, b GPSCoord, speed float64) GPSCoord {
 	sideA := a.Lat - b.Lat
 	sideB := a.Lon - b.Lon

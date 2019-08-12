@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"math"
 	"strings"
 	"testing"
@@ -149,8 +148,8 @@ func TestTick(t *testing.T) {
 
 	for i := 0; i <= distFloor; i++ {
 		dc.TickUpdate()
-		fmt.Println(dc.Drones[0].getStringJSON())
-		fmt.Println("tick")
+		// fmt.Println(dc.Drones[0].getStringJSON())
+		// fmt.Println("tick")
 	}
 
 	if !dc.Drones[0].CurrentPosition.equal(dc.Airport) {
@@ -207,4 +206,22 @@ func TestJSONUnmarshall(t *testing.T) {
 		t.Error("Expected 10 for Drones, Max and Min Deliveries. Got: ", airs[0])
 	}
 
+}
+
+func BenchmarkTrigo(b *testing.B) {
+	x := GPSCoord{10.0, 1.0}
+	y := GPSCoord{1.0, 10.0}
+
+	for i := 0; i < b.N; i++ {
+		trigo(x, y, 0.003)
+	}
+}
+
+func BenchmarkLinear(b *testing.B) {
+	x := GPSCoord{10.0, 1.0}
+	y := GPSCoord{1.0, 10.0}
+
+	for i := 0; i < b.N; i++ {
+		linearInterpolation(x, y, 0.000235702298569)
+	}
 }
