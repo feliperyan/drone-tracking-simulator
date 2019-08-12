@@ -167,8 +167,16 @@ func TestJSONRepresentation(t *testing.T) {
 }
 
 func TestJSONUnmarshall(t *testing.T) {
-        var airPorts []AirportConfig
-        airporStringtList := `[{"name":"air1", {"lat":-33.8073, "lon":151.1606},  {"lat":-33.8972, "lon":151.2738}}]`
-	json.Unmarshal([]byte(airporStringtList), &airportList)
-        fmt.Println(airPorts)
+	airportStringtList := `[{"name":"air1", "GPSCoord":{"lat":-33.8073, "lon":151.1606},  "GPSCoord":{"lat":-33.8972, "lon":151.2738}}]`
+	airs := getAirportConfigFromJSONString(airportStringtList)
+
+	if len(airs) == 0 {
+		t.Error("Expected length of airports > 0. Got: ", len(airs))
+		return
+	}
+
+	if airs[0].Name != "air1" {
+		t.Error("Expected name of first airport to be air1. Got: ", airs[0].Name)
+	}
+
 }
