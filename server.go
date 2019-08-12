@@ -87,7 +87,6 @@ func initialiseKafkaProducer(needsTLS bool) *kafka.Writer {
 
 func getTLSConfig() *tls.Config {
 	// Define TLS configuration
-	fmt.Println(certPEM)
 	certificate, err := tls.X509KeyPair([]byte(certPEM), []byte(keyPEM))
 	if err != nil {
 		panic(fmt.Sprintf("X509KeyPair errored out: %s", err))
