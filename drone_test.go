@@ -165,3 +165,10 @@ func TestJSONRepresentation(t *testing.T) {
 		t.Error("Not what we expected, got: ", s)
 	}
 }
+
+func TestJSONUnmarshall(t *testing.T) {
+        var airPorts []AirportConfig
+        airporStringtList := `[{"name":"air1", {"lat":-33.8073, "lon":151.1606},  {"lat":-33.8972, "lon":151.2738}}]`
+	json.Unmarshal([]byte(airporStringtList), &airportList)
+        fmt.Println(airPorts)
+}
