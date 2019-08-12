@@ -46,10 +46,10 @@ func initVariables() {
 	theBroker = strings.ReplaceAll(theBroker, "kafka+ssl://", "")
 	allBrokers = strings.Split(theBroker, ",")
 
+	theTopic = getOSEnvOrReplacement("FRYAN_TOPIC", "drone-coordinates")
 	topicPrefix := getOSEnvOrReplacement("KAFKA_PREFIX", "")
 	theTopic = fmt.Sprintf("%s%s", topicPrefix, theTopic)
 
-	theTopic = getOSEnvOrReplacement("FRYAN_TOPIC", "drone-coordinates")
 	eventLoopSeconds, _ = strconv.Atoi(getOSEnvOrReplacement("FRYAN_EVENT_LOOP_SECS", "1"))
 
 	airporStringtList := getOSEnvOrReplacement("FRYAN_AIRPORTS", `[{"name":"air1", "NE":{"lat":-33.8073, "lon":151.1606},  "SW":{"lat":-33.8972, "lon":151.2738}}]`)
