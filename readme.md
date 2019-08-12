@@ -1,4 +1,4 @@
-# Drone Tracking Simulation
+# Drone Tracking Simulator
 
 🚨🚨🚨This Heroku button uses the **paid** Kafka add-on 🚨🚨🚨
 
