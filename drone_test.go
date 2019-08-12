@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"strings"
@@ -166,8 +167,19 @@ func TestJSONRepresentation(t *testing.T) {
 	}
 }
 
+func TestJSONUnmarshallGPSCoord(t *testing.T) {
+	gpsString := `{"lat": -33.8073, "lon":151.1606}`
+	var point GPSCoord
+
+	json.Unmarshal([]byte(gpsString), &point)
+
+	if point.Lat != -33.8073 || point.Lon != 151.1606 {
+		t.Error("Expected lat -33.8073 and lon 151.1606 but got: ", point)
+	}
+}
+
 func TestJSONUnmarshall(t *testing.T) {
-	airportStringtList := `[{"name":"air1", "GPSCoord":{"lat":-33.8073, "lon":151.1606},  "GPSCoord":{"lat":-33.8972, "lon":151.2738}}]`
+	airportStringtList := `[{"name":"air1", "NE":{"lat":-33.8073, "lon":151.1606},  "SW":{"lat":-33.8972, "lon":151.2738}}]`
 	airs := getAirportConfigFromJSONString(airportStringtList)
 
 	if len(airs) == 0 {
@@ -177,6 +189,10 @@ func TestJSONUnmarshall(t *testing.T) {
 
 	if airs[0].Name != "air1" {
 		t.Error("Expected name of first airport to be air1. Got: ", airs[0].Name)
+	}
+
+	if airs[0].NE.Lat == 0 || airs[0].NE.Lon == 0 {
+		t.Error("One of the GPSCoords had zero values. Got: ", airs[0].NE)
 	}
 
 }

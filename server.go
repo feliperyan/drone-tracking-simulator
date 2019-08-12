@@ -52,7 +52,7 @@ func initVariables() {
 	theTopic = getOSEnvOrReplacement("FRYAN_TOPIC", "drone-coordinates")
 	eventLoopSeconds, _ = strconv.Atoi(getOSEnvOrReplacement("FRYAN_EVENT_LOOP_SECS", "1"))
 
-	airporStringtList := getOSEnvOrReplacement("FRYAN_AIRPORTS", `[{"name":"air1", "GPSCoord":{"lat":-33.8073, "lon":151.1606},  "GPSCoord":{"lat":-33.8972, "lon":151.2738}}]`)
+	airporStringtList := getOSEnvOrReplacement("FRYAN_AIRPORTS", `[{"name":"air1", "NE":{"lat":-33.8073, "lon":151.1606},  "SW":{"lat":-33.8972, "lon":151.2738}}]`)
 	airportList = getAirportConfigFromJSONString(airporStringtList)
 }
 
@@ -60,7 +60,7 @@ func getAirportConfigFromJSONString(stringOfAirportConfig string) []AirportConfi
 	var manyAirports []AirportConfig
 	err := json.Unmarshal([]byte(stringOfAirportConfig), &manyAirports)
 	if err != nil {
-		fmt.Println("Error unmarshalling: ", err)
+		fmt.Println("*** ERROR unmarshalling! Error is: ", err)
 	}
 
 	return manyAirports
