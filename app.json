@@ -1,0 +1,43 @@
+{
+    "name": "vehicle tracking simulator",
+    "stack": "heroku-18",
+    "keywords":[
+      "api",
+      "json",
+      "go",
+      "golang",
+      "heroku"
+    ],
+    "addons": [
+      "heroku-kafka:basic-0"
+    ],
+    "buildpacks": [
+      {
+        "url": "heroku/go"
+      }
+    ],
+    "env": {
+      "FRYAN_AIRPORTS": {
+        "required": true,
+        "description": "How many points of departure will you have, please note the format!",
+        "value": "[{\"name\":\"air1\", \"NE\":{\"lat\":-33.8073, \"lon\":151.1606},  \"SW\":{\"lat\":-33.8972, \"lon\":151.2738},\"drones\": 10,\"minDel\": 10,\"maxDel\":10}]"
+      },
+      "FRYAN_TOPIC":{
+          "required": true,
+          "value": "drone-coordinates"
+      }
+    },
+    "environments": {
+      "test": { 
+        "scripts": {
+          "test": "go test"
+        }
+      }
+    },
+    "formation": {
+        "simul": {
+            "quantity": 1,
+            "size": "standard-1x"
+        }
+    }
+  }
