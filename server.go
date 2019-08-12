@@ -31,9 +31,12 @@ var (
 
 // AirportConfig holds simple config to include airports for drones
 type AirportConfig struct {
-	Name string
-	NE   GPSCoord
-	SW   GPSCoord
+	Name   string
+	NE     GPSCoord
+	SW     GPSCoord
+	Drones int
+	MinDel int
+	MaxDel int
 }
 
 func initVariables() {
@@ -116,7 +119,7 @@ func getTLSConfig() *tls.Config {
 }
 
 func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig, firehose *kafka.Writer) {
-	air := InitDroneController(1, 2, 2, airConf.NE, airConf.SW, 0.003, airConf.Name)
+	air := InitDroneController(airConf.Drones, airConf.MinDel, airConf.MaxDel, airConf.NE, airConf.SW, 0.003, airConf.Name)
 	ctx := context.Background()
 
 	for {

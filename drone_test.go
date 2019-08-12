@@ -179,7 +179,15 @@ func TestJSONUnmarshallGPSCoord(t *testing.T) {
 }
 
 func TestJSONUnmarshall(t *testing.T) {
-	airportStringtList := `[{"name":"air1", "NE":{"lat":-33.8073, "lon":151.1606},  "SW":{"lat":-33.8972, "lon":151.2738}}]`
+	airportStringtList := `[{
+		"name":"air1", 
+		"NE":{"lat":-33.8073, "lon":151.1606},  
+		"SW":{"lat":-33.8972, "lon":151.2738},
+		"drones": 10,
+		"minDel": 10,
+		"maxDel":10
+	}]`
+
 	airs := getAirportConfigFromJSONString(airportStringtList)
 
 	if len(airs) == 0 {
@@ -193,6 +201,10 @@ func TestJSONUnmarshall(t *testing.T) {
 
 	if airs[0].NE.Lat == 0 || airs[0].NE.Lon == 0 {
 		t.Error("One of the GPSCoords had zero values. Got: ", airs[0].NE)
+	}
+
+	if airs[0].Drones != 10 || airs[0].MinDel != 10 || airs[0].MaxDel != 10 {
+		t.Error("Expected 10 for Drones, Max and Min Deliveries. Got: ", airs[0])
 	}
 
 }
