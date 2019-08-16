@@ -1,4 +1,5 @@
 [![travis-ci](https://travis-ci.org/feliperyan/drone-tracking-simulator.svg?branch=master)](https://travis-ci.org/feliperyan/drone-tracking-simulator)
+[![Go Report Card](https://goreportcard.com/badge/github.com/feliperyan/drone-tracking-simulator)](https://goreportcard.com/report/github.com/feliperyan/drone-tracking-simulator)
 # Drone Tracking Simulator
 
 🚨🚨🚨This Heroku button uses the **paid** Kafka add-on 🚨🚨🚨
