@@ -1,3 +1,4 @@
+[![travis-ci](https://travis-ci.org/feliperyan/drone-tracking-simulator.svg?branch=master)](https://travis-ci.org/feliperyan/drone-tracking-simulator)
 # Drone Tracking Simulator
 
 🚨🚨🚨This Heroku button uses the **paid** Kafka add-on 🚨🚨🚨
