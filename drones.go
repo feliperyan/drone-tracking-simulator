@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
@@ -35,20 +36,23 @@ type DroneController struct {
 	droneSpeed       float64
 }
 
-func (d *Drone) getStringJSON() string {
+func (d *Drone) getStringJSON() []byte {
 
 	//	fmt.Println(d)
 
-	s := fmt.Sprintf("{drone: %v, lat: %v, lon: %v, dest:{lat:%v, lon:%v, num: %v}}",
-		d.Name,
-		d.CurrentPosition.Lat,
-		d.CurrentPosition.Lon,
-		d.Destinations[d.NextDestination].Lat,
-		d.Destinations[d.NextDestination].Lon,
-		d.NextDestination,
-	)
-
-	return s
+	// s := fmt.Sprintf("{drone: %v, lat: %v, lon: %v, dest:{lat:%v, lon:%v, num: %v}}",
+	// 	d.Name,
+	// 	d.CurrentPosition.Lat,
+	// 	d.CurrentPosition.Lon,
+	// 	d.Destinations[d.NextDestination].Lat,
+	// 	d.Destinations[d.NextDestination].Lon,
+	// 	d.NextDestination,
+	// )
+	dJSON, err := json.Marshal(d)
+	if err != nil {
+		fmt.Println("Error Marshaling: ", err)
+	}
+	return dJSON
 }
 
 func (p1 GPSCoord) equal(p2 GPSCoord) bool {

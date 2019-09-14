@@ -142,10 +142,10 @@ func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig, fireh
 				air.TickUpdate()
 				msg := kafka.Message{
 					Key:   []byte(fmt.Sprintf("Airport-%s", airConf.Name)),
-					Value: []byte(fmt.Sprintf("%s", air.Drones[i].getStringJSON())),
+					Value: air.Drones[i].getStringJSON(),
 				}
 				messages = append(messages, msg)
-				fmt.Println(air.Drones[i].getStringJSON())
+				fmt.Println(string(air.Drones[i].getStringJSON()))
 			}
 			err := firehose.WriteMessages(ctx, messages...)
 			if err != nil {
