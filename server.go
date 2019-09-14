@@ -33,9 +33,9 @@ const airportConfigJSONString = `[{
 	"name":"air1", 
 	"NE":{"lat":-33.8073, "lon":151.1606},  
 	"SW":{"lat":-33.8972, "lon":151.2738},
-	"drones": 10,
-	"minDel": 10,
-	"maxDel":10
+	"drones": 2,
+	"minDel": 3,
+	"maxDel":3
 }]`
 
 // AirportConfig holds simple config to include airports for drones
@@ -137,15 +137,15 @@ func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig, fireh
 			imDone <- true
 			return
 		default:
-			messages := make([]kafka.Message, 20)
+			messages := make([]kafka.Message, 0)
+			air.TickUpdate()
 			for i := range air.Drones {
-				air.TickUpdate()
 				msg := kafka.Message{
 					Key:   []byte(fmt.Sprintf("Airport-%s", airConf.Name)),
 					Value: air.Drones[i].getStringJSON(),
 				}
 				messages = append(messages, msg)
-				fmt.Println(string(air.Drones[i].getStringJSON()))
+				fmt.Println("Drone msg: ", string(air.Drones[i].getStringJSON()))
 			}
 			err := firehose.WriteMessages(ctx, messages...)
 			if err != nil {
@@ -178,6 +178,7 @@ func main() {
 
 	w := initialiseKafkaProducer(usingTLS)
 
+	fmt.Println("Number of Airport and Goroutines:", len(airportList))
 	for _, air := range airportList {
 		go runAirport(allDone, stopGopher, air, w)
 	}
