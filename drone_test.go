@@ -159,9 +159,10 @@ func TestTick(t *testing.T) {
 
 func TestJSONRepresentation(t *testing.T) {
 	d := getDrone()
-	s := d.getStringJSON()
+	s := string(d.getStringJSON())
 
-	if strings.Compare(s, "{drone: drone-1, lat: 3, lon: 3, dest:{lat:9, lon:5, num: 0}}") != 0 {
+	if strings.Compare(s,
+		`{"CurrentPosition":{"Lat":3,"Lon":3},"Destinations":[{"Lat":9,"Lon":5}],"NextDestination":0,"Speed":5,"Name":"drone-1"}`) != 0 {
 		t.Error("Not what we expected, got: ", s)
 	}
 }

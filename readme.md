@@ -18,7 +18,7 @@ To deploy this app outside of Heroku please refer to the `initVariables()` funct
 
 The main configuration to consider is the json string defined in the `FRYAN_AIRPORTS` env var. Each one of these JSON objects (notice it's an array) represents a _drone port_ where drones will take-off from. Drones will choose a number of delivery destinations at random between `MinDel` and `MaxDel` and the addresses for each delivery are completely random within the boundaries defined by the `NE` and `SW` coordinates.
 
-### Explanation for each key:
+## Explanation for each key:
 
 1. `Name` = Every drone flying from this _droneport_ will be emit an event identifying itself as drone number N from airport X. So if `name="air1"` then drone2 is called `air1-2`.
 2. `NE` = This is the _top left_ boundary of the location in the world of where the drones are allowed to fly, expressed as Lat and Lon. For example `-33.8561, 151.2153` roughly the Sydney Opera House.
@@ -27,7 +27,7 @@ The main configuration to consider is the json string defined in the `FRYAN_AIRP
 5. `MinDel` = Minimum amount of deliveries each drone will perform, this adds some randomness to the simulation.
 5. `MaxDel` = Maximum amount of deliveries each drone will perform, this adds some randomness to the simulation.
 
-### Example
+## Example
 
 ```
 [{
@@ -40,7 +40,13 @@ The main configuration to consider is the json string defined in the `FRYAN_AIRP
 }]
 ```
 
+## Kafka message example:
+```
+{"CurrentPosition":{"Lat":3,"Lon":3},"Destinations":[{"Lat":9,"Lon":5}],"NextDestination":0,"Speed":5,"Name":"drone-1"}
+```
+
 ## To do:
 1. Replace trigo implementation with linearInterpolation. 😀
 2. Re-architecture so each dyno takes care of a different group of airports. 😕
 3. Come up with a visualisation of what is going on. 😳
+    * Check this repo for an update: https://github.com/feliperyan/react-redux-websocket-live-map
