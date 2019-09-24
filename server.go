@@ -157,6 +157,34 @@ func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig, fireh
 	}
 }
 
+func runAirportSingle(imDone chan bool, stopMe chan bool, airConf AirportConfig, firehose *kafka.Writer) {
+	air := InitDroneController(airConf.Drones, airConf.MinDel, airConf.MaxDel, airConf.NE, airConf.SW, 0.003, airConf.Name)
+	ctx := context.Background()
+
+	for {
+		select {
+		case <-stopMe:
+			imDone <- true
+			return
+		default:
+			air.TickUpdate()
+			for i := range air.Drones {
+				msg := kafka.Message{
+					Key:   []byte(fmt.Sprintf("Airport-%s", airConf.Name)),
+					Value: air.Drones[i].getStringJSON(),
+				}
+				fmt.Println("Drone msg: ", string(air.Drones[i].getStringJSON()))
+				err := firehose.WriteMessages(ctx, msg)
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+			fmt.Println("Tick")
+			time.Sleep(time.Duration(eventLoopSeconds) * time.Second)
+		}
+	}
+}
+
 func getOSEnvOrReplacement(envVarName, valueIfNotFound string) string {
 	thing, found := os.LookupEnv(envVarName)
 	if found {
@@ -180,7 +208,8 @@ func main() {
 
 	fmt.Println("Number of Airport and Goroutines:", len(airportList))
 	for _, air := range airportList {
-		go runAirport(allDone, stopGopher, air, w)
+		// go runAirport(allDone, stopGopher, air, w)
+		go runAirportSingle(allDone, stopGopher, air, w)
 	}
 
 	finito := <-sigs
