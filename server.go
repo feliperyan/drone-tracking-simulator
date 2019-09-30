@@ -130,6 +130,8 @@ func getTLSConfig() *tls.Config {
 func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig, firehose *kafka.Writer) {
 	air := InitDroneController(airConf.Drones, airConf.MinDel, airConf.MaxDel, airConf.NE, airConf.SW, 0.003, airConf.Name)
 	ctx := context.Background()
+	var tickNum int64
+	tickNum = 0
 
 	for {
 		select {
@@ -140,9 +142,11 @@ func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig, fireh
 			messages := make([]kafka.Message, 0)
 			air.TickUpdate()
 			for i := range air.Drones {
+				d := air.Drones[i]
+				d.Tick = tickNum
 				msg := kafka.Message{
 					Key:   []byte(fmt.Sprintf("Airport-%s", airConf.Name)),
-					Value: air.Drones[i].getStringJSON(),
+					Value: d.getStringJSON(),
 				}
 				messages = append(messages, msg)
 				fmt.Println("Drone msg: ", string(air.Drones[i].getStringJSON()))
@@ -151,7 +155,8 @@ func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig, fireh
 			if err != nil {
 				fmt.Println(err)
 			}
-			fmt.Println("Tick")
+			fmt.Println("Tick ", tickNum)
+			tickNum++
 			time.Sleep(1 * time.Second)
 		}
 	}
@@ -208,8 +213,7 @@ func main() {
 
 	fmt.Println("Number of Airport and Goroutines:", len(airportList))
 	for _, air := range airportList {
-		// go runAirport(allDone, stopGopher, air, w)
-		go runAirportSingle(allDone, stopGopher, air, w)
+		go runAirport(allDone, stopGopher, air, w)
 	}
 
 	finito := <-sigs

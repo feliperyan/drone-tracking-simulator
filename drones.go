@@ -22,6 +22,7 @@ type Drone struct {
 	NextDestination int
 	Speed           float64
 	Name            string
+	Tick            int64
 }
 
 // DroneController keeps track of drone state and updates state

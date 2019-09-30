@@ -42,7 +42,7 @@ The main configuration to consider is the json string defined in the `FRYAN_AIRP
 
 ## Kafka message example:
 ```
-{"CurrentPosition":{"Lat":3,"Lon":3},"Destinations":[{"Lat":9,"Lon":5}],"NextDestination":0,"Speed":5,"Name":"drone-1"}
+{"CurrentPosition":{"Lat":3,"Lon":3},"Destinations":[{"Lat":9,"Lon":5}],"NextDestination":0,"Speed":5,"Name":"drone-1", "Tick":1234556780}
 ```
 
 ## To do:
