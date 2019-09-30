@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"strconv"
@@ -31,6 +32,14 @@ var (
 
 const airportConfigJSONString = `[{
 	"name":"air1", 
+	"NE":{"lat":-33.8073, "lon":151.1606},  
+	"SW":{"lat":-33.8972, "lon":151.2738},
+	"drones": 2,
+	"minDel": 3,
+	"maxDel":3
+},
+{
+	"name":"air2", 
 	"NE":{"lat":-33.8073, "lon":151.1606},  
 	"SW":{"lat":-33.8972, "lon":151.2738},
 	"drones": 2,
@@ -62,7 +71,7 @@ func initVariables() {
 	topicPrefix := getOSEnvOrReplacement("KAFKA_PREFIX", "")
 	theTopic = fmt.Sprintf("%s%s", topicPrefix, theTopic)
 
-	eventLoopSeconds, _ = strconv.Atoi(getOSEnvOrReplacement("FRYAN_EVENT_LOOP_SECS", "1"))
+	eventLoopSeconds, _ = strconv.Atoi(getOSEnvOrReplacement("FRYAN_EVENT_LOOP_SECS", "10"))
 
 	airporStringtList := getOSEnvOrReplacement("FRYAN_AIRPORTS", airportConfigJSONString)
 	airportList = getAirportConfigFromJSONString(airporStringtList)
@@ -127,18 +136,19 @@ func getTLSConfig() *tls.Config {
 	}
 }
 
-func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig, firehose *kafka.Writer) {
+func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig,
+	currentTick chan int64, kafkaMessages chan []kafka.Message) {
+
 	air := InitDroneController(airConf.Drones, airConf.MinDel, airConf.MaxDel, airConf.NE, airConf.SW, 0.003, airConf.Name)
-	ctx := context.Background()
-	var tickNum int64
-	tickNum = 0
 
 	for {
 		select {
+
 		case <-stopMe:
 			imDone <- true
 			return
-		default:
+
+		case tickNum := <-currentTick:
 			messages := make([]kafka.Message, 0)
 			air.TickUpdate()
 			for i := range air.Drones {
@@ -151,41 +161,8 @@ func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig, fireh
 				messages = append(messages, msg)
 				fmt.Println("Drone msg: ", string(air.Drones[i].getStringJSON()))
 			}
-			err := firehose.WriteMessages(ctx, messages...)
-			if err != nil {
-				fmt.Println(err)
-			}
-			fmt.Println("Tick ", tickNum)
-			tickNum++
-			time.Sleep(1 * time.Second)
-		}
-	}
-}
-
-func runAirportSingle(imDone chan bool, stopMe chan bool, airConf AirportConfig, firehose *kafka.Writer) {
-	air := InitDroneController(airConf.Drones, airConf.MinDel, airConf.MaxDel, airConf.NE, airConf.SW, 0.003, airConf.Name)
-	ctx := context.Background()
-
-	for {
-		select {
-		case <-stopMe:
-			imDone <- true
-			return
-		default:
-			air.TickUpdate()
-			for i := range air.Drones {
-				msg := kafka.Message{
-					Key:   []byte(fmt.Sprintf("Airport-%s", airConf.Name)),
-					Value: air.Drones[i].getStringJSON(),
-				}
-				fmt.Println("Drone msg: ", string(air.Drones[i].getStringJSON()))
-				err := firehose.WriteMessages(ctx, msg)
-				if err != nil {
-					fmt.Println(err)
-				}
-			}
-			fmt.Println("Tick")
-			time.Sleep(time.Duration(eventLoopSeconds) * time.Second)
+			fmt.Println("Sending messages to KafkaMessages channel.")
+			kafkaMessages <- messages
 		}
 	}
 }
@@ -200,6 +177,11 @@ func getOSEnvOrReplacement(envVarName, valueIfNotFound string) string {
 
 func main() {
 	initVariables()
+	var tick int64
+	tick = 0
+	tickChan := make(chan int64, len(airportList))
+	kafkaMessagesToSend := make(chan []kafka.Message, len(airportList))
+	ctx := context.Background()
 
 	fmt.Printf("Initialising producer. Broker: %s | topic: %s | airports: %v\n", theBroker, theTopic, airportList)
 
@@ -212,17 +194,40 @@ func main() {
 	w := initialiseKafkaProducer(usingTLS)
 
 	fmt.Println("Number of Airport and Goroutines:", len(airportList))
+
 	for _, air := range airportList {
-		go runAirport(allDone, stopGopher, air, w)
+		go runAirport(allDone, stopGopher, air, tickChan, kafkaMessagesToSend)
 	}
 
-	finito := <-sigs
-	fmt.Println("\nReceived signal: ", finito)
-	fmt.Println("Exiting Routines.")
-	for n := 0; n < len(airportList); n++ {
-		stopGopher <- true
+outer:
+	for {
+		select {
+		case finito := <-sigs:
+			fmt.Println("\nReceived signal: ", finito)
+			fmt.Println("Exiting Routines.")
+			for n := 0; n < len(airportList); n++ {
+				stopGopher <- true
+			}
+			break outer
+		case <-time.After(time.Duration(eventLoopSeconds) * time.Second):
+			fmt.Println("Awaiting time loop: ", eventLoopSeconds)
+			for range airportList {
+				fmt.Println("Sending tick: ", tick)
+				tickChan <- tick
+			}
+			for range airportList {
+				fmt.Println("Awaiting on channel KafkaMessages")
+				newMessages := <-kafkaMessagesToSend
+				err := w.WriteMessages(ctx, newMessages...)
+				if err != nil {
+					log.Println("Error writing to kafka: ", err)
+				}
+			}
+			tick++
+		}
 	}
 
+	fmt.Println("Will now await for all simulations to finish")
 	// await finish
 	for n := 0; n < len(airportList); n++ {
 		<-allDone
