@@ -195,6 +195,7 @@ func main() {
 
 	fmt.Println("Number of Airport and Goroutines:", len(airportList))
 
+	// Start all airport simulations. Each will block on tickChan
 	for _, air := range airportList {
 		go runAirport(allDone, stopGopher, air, tickChan, kafkaMessagesToSend)
 	}
@@ -202,19 +203,24 @@ func main() {
 outer:
 	for {
 		select {
-		case finito := <-sigs:
+		case finito := <-sigs: // kill signal
 			fmt.Println("\nReceived signal: ", finito)
 			fmt.Println("Exiting Routines.")
 			for n := 0; n < len(airportList); n++ {
 				stopGopher <- true
 			}
 			break outer
+
 		case <-time.After(time.Duration(eventLoopSeconds) * time.Second):
 			fmt.Println("Awaiting time loop: ", eventLoopSeconds)
+
+			// Send the current tickNum to each gorountine, unblocking them.
 			for range airportList {
 				fmt.Println("Sending tick: ", tick)
 				tickChan <- tick
 			}
+
+			// Block until we receive the slice of kafka messages from each goroutine
 			for range airportList {
 				fmt.Println("Awaiting on channel KafkaMessages")
 				newMessages := <-kafkaMessagesToSend
@@ -223,6 +229,7 @@ outer:
 					log.Println("Error writing to kafka: ", err)
 				}
 			}
+			// update tick of course.
 			tick++
 		}
 	}
