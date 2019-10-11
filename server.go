@@ -34,17 +34,17 @@ const airportConfigJSONString = `[{
 	"name":"air1", 
 	"NE":{"lat":-33.8073, "lon":151.1606},  
 	"SW":{"lat":-33.8972, "lon":151.2738},
-	"drones": 2,
-	"minDel": 3,
-	"maxDel":3
+	"drones": 2000,
+	"minDel": 5,
+	"maxDel":5
 },
 {
 	"name":"air2", 
 	"NE":{"lat":-33.8073, "lon":151.1606},  
 	"SW":{"lat":-33.8972, "lon":151.2738},
-	"drones": 2,
-	"minDel": 3,
-	"maxDel":3
+	"drones": 2000,
+	"minDel": 5,
+	"maxDel":5
 }]`
 
 // AirportConfig holds simple config to include airports for drones
@@ -71,7 +71,7 @@ func initVariables() {
 	topicPrefix := getOSEnvOrReplacement("KAFKA_PREFIX", "")
 	theTopic = fmt.Sprintf("%s%s", topicPrefix, theTopic)
 
-	eventLoopSeconds, _ = strconv.Atoi(getOSEnvOrReplacement("FRYAN_EVENT_LOOP_SECS", "10"))
+	eventLoopSeconds, _ = strconv.Atoi(getOSEnvOrReplacement("FRYAN_EVENT_LOOP_SECS", "3"))
 
 	airporStringtList := getOSEnvOrReplacement("FRYAN_AIRPORTS", airportConfigJSONString)
 	airportList = getAirportConfigFromJSONString(airporStringtList)
@@ -212,8 +212,6 @@ outer:
 			break outer
 
 		case <-time.After(time.Duration(eventLoopSeconds) * time.Second):
-			fmt.Println("Awaiting time loop: ", eventLoopSeconds)
-
 			// Send the current tickNum to each gorountine, unblocking them.
 			for range airportList {
 				fmt.Println("Sending tick: ", tick)
@@ -222,7 +220,6 @@ outer:
 
 			// Block until we receive the slice of kafka messages from each goroutine
 			for range airportList {
-				fmt.Println("Awaiting on channel KafkaMessages")
 				newMessages := <-kafkaMessagesToSend
 				err := w.WriteMessages(ctx, newMessages...)
 				if err != nil {
@@ -234,7 +231,7 @@ outer:
 		}
 	}
 
-	fmt.Println("Will now await for all simulations to finish")
+	fmt.Println("Awaiting for goroutines to finish...")
 	// await finish
 	for n := 0; n < len(airportList); n++ {
 		<-allDone
