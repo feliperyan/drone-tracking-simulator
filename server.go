@@ -161,7 +161,7 @@ func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig,
 				messages = append(messages, msg)
 				//fmt.Println("Drone msg: ", string(air.Drones[i].getStringJSON()))
 			}
-			fmt.Printf("%s sending %d messages to KafkaMessages channel.\n", airConf.Name, len(messages))
+			log.Printf("%s sending %d messages to KafkaMessages channel.\n", airConf.Name, len(messages))
 			kafkaMessages <- messages
 		}
 	}
@@ -221,10 +221,13 @@ outer:
 			// Block until we receive the slice of kafka messages from each goroutine
 			for range airportList {
 				newMessages := <-kafkaMessagesToSend
+				start := time.Now()
 				err := w.WriteMessages(ctx, newMessages...)
 				if err != nil {
 					log.Println("Error writing to kafka: ", err)
 				}
+				elapsed := time.Since(start)
+				log.Printf("Writing to kafka took %s", elapsed)
 			}
 			// update tick of course.
 			tick++
