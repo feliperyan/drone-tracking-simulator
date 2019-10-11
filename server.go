@@ -111,6 +111,7 @@ func initialiseKafkaProducer(needsTLS bool) *kafka.Writer {
 		Topic:    theTopic,
 		Balancer: &kafka.LeastBytes{},
 		Dialer:   dialer,
+		Async:    true,
 	})
 
 	return w
