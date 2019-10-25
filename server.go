@@ -34,7 +34,7 @@ const airportConfigJSONString = `[{
 	"name":"air1", 
 	"NE":{"lat":-33.8073, "lon":151.1606},  
 	"SW":{"lat":-33.8972, "lon":151.2738},
-	"drones": 2000,
+	"drones": 1,
 	"minDel": 5,
 	"maxDel":5
 },
@@ -42,7 +42,7 @@ const airportConfigJSONString = `[{
 	"name":"air2", 
 	"NE":{"lat":-33.8073, "lon":151.1606},  
 	"SW":{"lat":-33.8972, "lon":151.2738},
-	"drones": 2000,
+	"drones": 1,
 	"minDel": 5,
 	"maxDel":5
 }]`
@@ -111,7 +111,6 @@ func initialiseKafkaProducer(needsTLS bool) *kafka.Writer {
 		Topic:    theTopic,
 		Balancer: &kafka.LeastBytes{},
 		Dialer:   dialer,
-		Async:    true,
 	})
 
 	return w
@@ -194,7 +193,7 @@ func main() {
 
 	w := initialiseKafkaProducer(usingTLS)
 
-	fmt.Println("Number of Airport and Goroutines:", len(airportList))
+	//fmt.Println("Number of Airport and Goroutines:", len(airportList))
 
 	// Start all airport simulations. Each will block on tickChan
 	for _, air := range airportList {
@@ -215,7 +214,7 @@ outer:
 		case <-time.After(time.Duration(eventLoopSeconds) * time.Second):
 			// Send the current tickNum to each gorountine, unblocking them.
 			for range airportList {
-				fmt.Println("Sending tick: ", tick)
+				//fmt.Println("Sending tick: ", tick)
 				tickChan <- tick
 			}
 
