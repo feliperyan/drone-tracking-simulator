@@ -227,7 +227,11 @@ outer:
 					log.Println("Error writing to kafka: ", err)
 				}
 				elapsed := time.Since(start)
-				log.Printf("Writing to kafka took %s", elapsed)
+
+				// If it's taking too long to write to kafka, let me know
+				if int(elapsed/time.Second) > eventLoopSeconds {
+					log.Printf("Warning: Writing to kafka took longer than Tick duration %s", elapsed)
+				}
 			}
 			// update tick of course.
 			tick++
