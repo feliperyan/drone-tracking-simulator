@@ -161,7 +161,7 @@ func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig,
 				messages = append(messages, msg)
 				//fmt.Println("Drone msg: ", string(air.Drones[i].getStringJSON()))
 			}
-			log.Printf("%s sending %d messages to KafkaMessages channel.\n", airConf.Name, len(messages))
+			//log.Printf("%s sending %d messages to KafkaMessages channel.\n", airConf.Name, len(messages))
 			kafkaMessages <- messages
 		}
 	}
