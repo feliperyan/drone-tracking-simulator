@@ -1,4 +1,4 @@
-package main
+package dronedeliverysimul
 
 import (
 	"encoding/json"
@@ -7,6 +7,25 @@ import (
 	"math/rand"
 	"time"
 )
+
+type AirportConfig struct {
+	Name   string
+	NE     GPSCoord
+	SW     GPSCoord
+	Drones int
+	MinDel int
+	MaxDel int
+}
+
+func GetAirportConfigFromJSONString(stringOfAirportConfig string) []AirportConfig {
+	var manyAirports []AirportConfig
+	err := json.Unmarshal([]byte(stringOfAirportConfig), &manyAirports)
+	if err != nil {
+		fmt.Println("*** ERROR unmarshalling! Error is: ", err)
+	}
+
+	return manyAirports
+}
 
 // GPSCoord a simple latitude and longitude type
 type GPSCoord struct {
@@ -36,7 +55,7 @@ type DroneController struct {
 	droneSpeed       float64
 }
 
-func (d *Drone) getStringJSON() []byte {
+func (d *Drone) GetStringJSON() []byte {
 
 	//	fmt.Println(d)
 

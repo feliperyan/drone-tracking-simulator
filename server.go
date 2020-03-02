@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
@@ -13,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/feliperyan/drone-tracking-simulator/dronedeliverysimul"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -26,7 +26,7 @@ var (
 	keyPEM           string
 	caPEM            string
 	eventLoopSeconds int
-	airportList      []AirportConfig
+	airportList      []dronedeliverysimul.AirportConfig
 )
 
 const airportConfigJSONString = `[{
@@ -39,14 +39,6 @@ const airportConfigJSONString = `[{
 }]`
 
 // AirportConfig holds simple config to include airports for drones
-type AirportConfig struct {
-	Name   string
-	NE     GPSCoord
-	SW     GPSCoord
-	Drones int
-	MinDel int
-	MaxDel int
-}
 
 func initVariables() {
 	theBroker = getOSEnvOrReplacement("KAFKA_URL", "localhost:9092")
@@ -65,17 +57,7 @@ func initVariables() {
 	eventLoopSeconds, _ = strconv.Atoi(getOSEnvOrReplacement("FRYAN_EVENT_LOOP_SECS", "1"))
 
 	airporStringtList := getOSEnvOrReplacement("FRYAN_AIRPORTS", airportConfigJSONString)
-	airportList = getAirportConfigFromJSONString(airporStringtList)
-}
-
-func getAirportConfigFromJSONString(stringOfAirportConfig string) []AirportConfig {
-	var manyAirports []AirportConfig
-	err := json.Unmarshal([]byte(stringOfAirportConfig), &manyAirports)
-	if err != nil {
-		fmt.Println("*** ERROR unmarshalling! Error is: ", err)
-	}
-
-	return manyAirports
+	airportList = dronedeliverysimul.GetAirportConfigFromJSONString(airporStringtList)
 }
 
 func initialiseKafkaProducer(needsTLS bool) *kafka.Writer {
@@ -127,8 +109,8 @@ func getTLSConfig() *tls.Config {
 	}
 }
 
-func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig, firehose *kafka.Writer) {
-	air := InitDroneController(airConf.Drones, airConf.MinDel, airConf.MaxDel, airConf.NE, airConf.SW, 0.003, airConf.Name)
+func runAirport(imDone chan bool, stopMe chan bool, airConf dronedeliverysimul.AirportConfig, firehose *kafka.Writer) {
+	air := dronedeliverysimul.InitDroneController(airConf.Drones, airConf.MinDel, airConf.MaxDel, airConf.NE, airConf.SW, 0.003, airConf.Name)
 	ctx := context.Background()
 
 	for {
@@ -142,10 +124,10 @@ func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig, fireh
 			for i := range air.Drones {
 				msg := kafka.Message{
 					Key:   []byte(fmt.Sprintf("Airport-%s", airConf.Name)),
-					Value: air.Drones[i].getStringJSON(),
+					Value: air.Drones[i].GetStringJSON(),
 				}
 				messages = append(messages, msg)
-				fmt.Println("Drone msg: ", string(air.Drones[i].getStringJSON()))
+				fmt.Println("Drone msg: ", string(air.Drones[i].GetStringJSON()))
 			}
 			err := firehose.WriteMessages(ctx, messages...)
 			if err != nil {
@@ -157,8 +139,8 @@ func runAirport(imDone chan bool, stopMe chan bool, airConf AirportConfig, fireh
 	}
 }
 
-func runAirportSingle(imDone chan bool, stopMe chan bool, airConf AirportConfig, firehose *kafka.Writer) {
-	air := InitDroneController(airConf.Drones, airConf.MinDel, airConf.MaxDel, airConf.NE, airConf.SW, 0.003, airConf.Name)
+func runAirportSingle(imDone chan bool, stopMe chan bool, airConf dronedeliverysimul.AirportConfig, firehose *kafka.Writer) {
+	air := dronedeliverysimul.InitDroneController(airConf.Drones, airConf.MinDel, airConf.MaxDel, airConf.NE, airConf.SW, 0.003, airConf.Name)
 	ctx := context.Background()
 
 	for {
@@ -171,9 +153,9 @@ func runAirportSingle(imDone chan bool, stopMe chan bool, airConf AirportConfig,
 			for i := range air.Drones {
 				msg := kafka.Message{
 					Key:   []byte(fmt.Sprintf("Airport-%s", airConf.Name)),
-					Value: air.Drones[i].getStringJSON(),
+					Value: air.Drones[i].GetStringJSON(),
 				}
-				fmt.Println("Drone msg: ", string(air.Drones[i].getStringJSON()))
+				fmt.Println("Drone msg: ", string(air.Drones[i].GetStringJSON()))
 				err := firehose.WriteMessages(ctx, msg)
 				if err != nil {
 					fmt.Println(err)

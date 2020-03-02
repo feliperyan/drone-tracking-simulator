@@ -1,4 +1,4 @@
-package main
+package dronedeliverysimul
 
 import (
 	"encoding/json"
@@ -159,7 +159,7 @@ func TestTick(t *testing.T) {
 
 func TestJSONRepresentation(t *testing.T) {
 	d := getDrone()
-	s := string(d.getStringJSON())
+	s := string(d.GetStringJSON())
 
 	if strings.Compare(s,
 		`{"CurrentPosition":{"Lat":3,"Lon":3},"Destinations":[{"Lat":9,"Lon":5}],"NextDestination":0,"Speed":5,"Name":"drone-1"}`) != 0 {
@@ -188,7 +188,7 @@ func TestJSONUnmarshall(t *testing.T) {
 		"maxDel":10
 	}]`
 
-	airs := getAirportConfigFromJSONString(airportStringtList)
+	airs := GetAirportConfigFromJSONString(airportStringtList)
 
 	if len(airs) == 0 {
 		t.Error("Expected length of airports > 0. Got: ", len(airs))
