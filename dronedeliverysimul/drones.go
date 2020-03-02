@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// AirportConfig is a struct containing the details of an airport for the simulation.
 type AirportConfig struct {
 	Name   string
 	NE     GPSCoord
@@ -17,6 +18,7 @@ type AirportConfig struct {
 	MaxDel int
 }
 
+// GetAirportConfigFromJSONString parses a JSON file representation of a list of airports into an array of AirportConfig structs
 func GetAirportConfigFromJSONString(stringOfAirportConfig string) []AirportConfig {
 	var manyAirports []AirportConfig
 	err := json.Unmarshal([]byte(stringOfAirportConfig), &manyAirports)
@@ -55,18 +57,8 @@ type DroneController struct {
 	droneSpeed       float64
 }
 
+// GetStringJSON Get a JSON representation of this drone's details.
 func (d *Drone) GetStringJSON() []byte {
-
-	//	fmt.Println(d)
-
-	// s := fmt.Sprintf("{drone: %v, lat: %v, lon: %v, dest:{lat:%v, lon:%v, num: %v}}",
-	// 	d.Name,
-	// 	d.CurrentPosition.Lat,
-	// 	d.CurrentPosition.Lon,
-	// 	d.Destinations[d.NextDestination].Lat,
-	// 	d.Destinations[d.NextDestination].Lon,
-	// 	d.NextDestination,
-	// )
 	dJSON, err := json.Marshal(d)
 	if err != nil {
 		fmt.Println("Error Marshaling: ", err)
