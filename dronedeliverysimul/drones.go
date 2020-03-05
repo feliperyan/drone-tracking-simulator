@@ -38,11 +38,11 @@ type GPSCoord struct {
 // Drone represents a Drone
 type Drone struct {
 	// Looks like 0.0003 is about 10 meters
-	CurrentPosition GPSCoord
-	Destinations    []GPSCoord
-	NextDestination int
-	Speed           float64
-	Name            string
+	CurrentPosition GPSCoord   `json:"CurrentPosition"`
+	Destinations    []GPSCoord `json:"Destinations"`
+	NextDestination int        `json:"NextDestination"`
+	Speed           float64    `json:"Speed"`
+	Name            string     `json:"Name"`
 }
 
 // DroneController keeps track of drone state and updates state
