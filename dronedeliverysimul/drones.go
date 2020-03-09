@@ -201,8 +201,14 @@ func (d *Drone) UpdatePositionTowardsDestination() {
 }
 
 // TickUpdate updates all drones that belong to the dc DroneController
-func (dc *DroneController) TickUpdate() {
+func (dc *DroneController) TickUpdate(dronesToStop map[string]string) {
 	for ite, dr := range dc.Drones {
+		_, found := dronesToStop[dr.Name]
+		if found {
+			// dont update this drone as it has been stopped.
+			continue
+		}
+
 		dc.Drones[ite].UpdatePositionTowardsDestination()
 
 		// test if drone has reached all its destinations

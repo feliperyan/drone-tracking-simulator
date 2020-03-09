@@ -25,12 +25,16 @@ var (
 	closeConn   chan *websocket.Conn
 	allConns    chan *websocket.Conn
 	addr        = flag.String("port", "8080", "http service address")
+
+	msgFromClient chan string
 )
 
 func init() {
 	allMessages = make(chan *dronedeliverysimul.Drone)
 	closeConn = make(chan *websocket.Conn)
 	allConns = make(chan *websocket.Conn)
+
+	msgFromClient = make(chan string)
 }
 
 func indexWS(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +64,8 @@ func incomingWebsocket(wri http.ResponseWriter, req *http.Request) {
 			return
 		}
 		if mt == websocket.TextMessage {
-			fmt.Println("From Client: ", string(msg))
+			fmt.Println("\nFROM CLIENT: ", string(msg))
+			msgFromClient <- string(msg)
 		}
 	}
 }
@@ -133,7 +138,7 @@ func main() {
 	}(sigint, sigIntProcessMessages, sigIntSimulation)
 
 	go processMessages(serv, allConns, allMessages, closeConn, sigIntProcessMessages)
-	go runSimulationMain(allMessages, sigIntSimulation)
+	go runSimulationMain(allMessages, sigIntSimulation, msgFromClient)
 
 	http.HandleFunc("/", indexWS)
 	http.HandleFunc("/ws", incomingWebsocket)
