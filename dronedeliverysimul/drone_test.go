@@ -146,8 +146,10 @@ func TestTick(t *testing.T) {
 	distFloor := int(math.Floor(dist))
 	distFloor = (distFloor * 2) + 1 // get back to origin
 
+	dummyMap := make(map[string]string)
+
 	for i := 0; i <= distFloor; i++ {
-		dc.TickUpdate()
+		dc.TickUpdate(dummyMap)
 		// fmt.Println(dc.Drones[0].getStringJSON())
 		// fmt.Println("tick")
 	}

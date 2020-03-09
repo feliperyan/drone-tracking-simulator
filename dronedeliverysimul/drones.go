@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+const stopped string = "stopped"
+const moving string = "moving"
+const updating string = "updating"
+
 // AirportConfig is a struct containing the details of an airport for the simulation.
 type AirportConfig struct {
 	Name   string
@@ -43,6 +47,7 @@ type Drone struct {
 	NextDestination int        `json:"NextDestination"`
 	Speed           float64    `json:"Speed"`
 	Name            string     `json:"Name"`
+	Status          string     `json:"Status"`
 }
 
 // DroneController keeps track of drone state and updates state
@@ -206,10 +211,12 @@ func (dc *DroneController) TickUpdate(dronesToStop map[string]string) {
 		_, found := dronesToStop[dr.Name]
 		if found {
 			// dont update this drone as it has been stopped.
+			dc.Drones[ite].Status = stopped
 			continue
 		}
 
 		dc.Drones[ite].UpdatePositionTowardsDestination()
+		dc.Drones[ite].Status = moving
 
 		// test if drone has reached all its destinations
 		// if so set up a new set of destinations and launch it
@@ -217,6 +224,7 @@ func (dc *DroneController) TickUpdate(dronesToStop map[string]string) {
 			fmt.Println("refreshing drone: ", dr.Name)
 			dc.Drones[ite] = initDroneRandom(dc.Airport, dc.NWBoundary, dc.SEBoundary, dc.droneMinDrops, dc.droneMaxDrops, dc.droneSpeed)
 			dc.Drones[ite].Name = dr.Name
+			dc.Drones[ite].Status = updating
 		}
 
 	}
