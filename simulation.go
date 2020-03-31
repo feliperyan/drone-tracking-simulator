@@ -20,7 +20,7 @@ const airportConfigJSONString = `[{
 }]`
 
 type clientMessage struct {
-	Command string            `json:"commands"`
+	Command string            `json:"command"`
 	Message map[string]string `json:"message"`
 }
 
@@ -63,7 +63,7 @@ func runAirport(
 
 			for i := range air.Drones {
 				// fmt.Println("Drone msg: ", string(air.Drones[i].GetStringJSON()))
-				fmt.Println("Sending to websocket...")
+				// fmt.Println("Sending to websocket...")
 				d := air.Drones[i]
 				payload <- d
 			}

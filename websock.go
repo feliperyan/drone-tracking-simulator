@@ -100,7 +100,7 @@ func processMessages(srv *http.Server, socks chan *websocket.Conn, messages chan
 			fmt.Println("Client left. Total Clients: ", len(allSocks))
 
 		case msg := <-messages: // broadcast message to clients
-			fmt.Println("received: ", msg)
+			// fmt.Println("Broadcasting: ", msg)
 			for _, v := range allSocks {
 				v.WriteJSON(msg)
 			}

@@ -1,1 +1,1 @@
-simul: bin/drone-tracking-simulator
+simul: bin/drone-tracking-simulator -port $PORT
