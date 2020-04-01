@@ -9,7 +9,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -19,14 +19,20 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type addressWebSocket struct {
+	Addr string
+}
+
 var (
-	upgrader    = websocket.Upgrader{}
-	allMessages chan *dronedeliverysimul.Drone
-	closeConn   chan *websocket.Conn
-	allConns    chan *websocket.Conn
-	addr        = flag.String("port", "8080", "http service address")
+	upgrader      = websocket.Upgrader{}
+	allMessages   chan *dronedeliverysimul.Drone
+	closeConn     chan *websocket.Conn
+	allConns      chan *websocket.Conn
+	portNum       = flag.String("port", "8080", "port number")
+	webSocketAddr = flag.String("ws", "localhost:8080", "this server address")
 
 	msgFromClient chan string
+	templ         *template.Template
 )
 
 func init() {
@@ -35,14 +41,17 @@ func init() {
 	allConns = make(chan *websocket.Conn)
 
 	msgFromClient = make(chan string)
+
+	var e error
+	templ, e = template.ParseFiles("websocket.html")
+	if e != nil {
+		fmt.Println("Could not open file.", e)
+	}
 }
 
 func indexWS(w http.ResponseWriter, r *http.Request) {
-	content, err := ioutil.ReadFile("websocket.html")
-	if err != nil {
-		fmt.Println("Could not open file.", err)
-	}
-	fmt.Fprintf(w, "%s", content)
+	add := addressWebSocket{Addr: *webSocketAddr}
+	templ.Execute(w, add)
 }
 
 func incomingWebsocket(wri http.ResponseWriter, req *http.Request) {
@@ -125,10 +134,10 @@ func main() {
 	// Not secure at all so anyone can connect to this websocket...
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
-	theAddr := fmt.Sprintf(":%s", *addr)
-	log.Println("Starting: ", theAddr)
+	thePortNumber := fmt.Sprintf(":%s", *portNum)
+	log.Println("Starting: ", thePortNumber)
 
-	serv := &http.Server{Addr: theAddr, Handler: nil}
+	serv := &http.Server{Addr: thePortNumber, Handler: nil}
 
 	// There's gotta be a better way than this.
 	go func(killAll chan os.Signal, proc chan os.Signal, simul chan os.Signal) {
