@@ -1,1 +1,1 @@
-web: bin/drone-tracking-simulator -port $PORT
+web: bin/drone-tracking-simulator -port $PORT -ws $WSADDR
