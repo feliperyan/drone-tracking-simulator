@@ -21,8 +21,14 @@
                 ws = initWS();
             }
             function initWS() {
-                var socket = new WebSocket("ws://{{ .Addr}}/ws"),
-                    container = $("#container")
+                addr = "ws://{{ .Addr}}/ws";
+                if (document.location.protocol == 'https:') {
+                    addr = "wss://{{ .Addr}}/ws";
+                }
+                socket = new WebSocket(addr);
+                
+                container = $("#container")
+
                 socket.onopen = function() {
                     container.append("<p>Socket is open</p>");
                 };
@@ -32,6 +38,7 @@
                 socket.onclose = function () {
                     container.append("<p>Socket closed</p>");
                 }
+                
                 return socket;
             }
         });
