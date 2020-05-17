@@ -8,9 +8,6 @@
       "golang",
       "heroku"
     ],
-    "addons": [
-      "heroku-kafka:basic-0"
-    ],
     "buildpacks": [
       {
         "url": "heroku/go"
