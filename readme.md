@@ -2,7 +2,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/feliperyan/drone-tracking-simulator)](https://goreportcard.com/report/github.com/feliperyan/drone-tracking-simulator)
 # Drone Tracking Simulator
 
-🚨🚨🚨This Heroku button uses the **paid** Kafka add-on 🚨🚨🚨
+🚨🚨🚨 This branch is a bit messy - it no longer expects Kafka so Heroku deploy may be wonky. 🚨🚨🚨
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/feliperyan/drone-tracking-simulator)
 
@@ -40,7 +40,7 @@ The main configuration to consider is the json string defined in the `FRYAN_AIRP
 }]
 ```
 
-## Kafka message example:
+~## Kafka message example:~
 ```
 {"CurrentPosition":{"Lat":3,"Lon":3},"Destinations":[{"Lat":9,"Lon":5}],"NextDestination":0,"Speed":5,"Name":"drone-1"}
 ```
